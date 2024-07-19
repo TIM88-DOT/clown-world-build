@@ -1,3 +1,3 @@
 ﻿# clown-world-build
 
-for testing onlyyyyyyyyyy
+for testing only
