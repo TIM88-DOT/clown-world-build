@@ -16,7 +16,7 @@
                 <div id="unity-progress-bar-full"></div>
             </div>
         </div>
-        <div id="unity-warning"></div>
+        <div id="unity-warning"> </div>
         <div id="unity-footer">
             <div id="unity-webgl-logo"></div>
             <div id="unity-fullscreen-button"></div>
@@ -82,47 +82,33 @@
         script.onload = () => {
             createUnityInstance(canvas, config, (progress) => {
                 progressBarFull.style.width = 100 * progress + "%";
-            }).then(async (unityInstance) => {
+            }).then((unityInstance) => {
+                nethereumUnityInstance = unityInstance;
                 loadingBar.style.display = "none";
                 fullscreenButton.onclick = () => {
                     unityInstance.SetFullscreen(1);
                 };
 
-                async function getUserData(token) {
-                    const response = await fetch('/get-user-data', {
+                const params = new URLSearchParams(window.location.search);
+                const token = params.get('token');
+
+                if (token) {
+                    fetch('/get-user-data', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({ token })
-                    });
-
-                    if (response.ok) {
-                        return await response.json();
-                    } else {
-                        throw new Error('Unauthorized or invalid token');
-                    }
-                }
-
-                function getQueryParams() {
-                    const params = new URLSearchParams(window.location.search);
-                    const token = params.get('token');
-                    return { token };
-                }
-
-                async function sendParamsToUnity() {
-                    const { token } = getQueryParams();
-                    
-                    try {
-                        const userData = await getUserData(token);
-                        console.log("Sending user data to Unity:", userData);
-                        unityInstance.SendMessage('GameManager', 'ReceiveUserData', JSON.stringify(userData));
-                    } catch (error) {
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('User Data:', data);
+                        unityInstance.SendMessage('GameManager', 'ReceiveUserData', JSON.stringify(data));
+                    })
+                    .catch(error => {
                         console.error('Failed to fetch user data:', error);
-                    }
+                    });
                 }
-
-                await sendParamsToUnity();
             }).catch((message) => {
                 alert(message);
             });
