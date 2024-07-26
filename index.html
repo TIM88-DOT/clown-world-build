@@ -6,6 +6,7 @@
     <title>Unity WebGL Player | CWUnity</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
+    <script src="game.js"></script>
 </head>
 <body>
     <div id="unity-container" class="unity-desktop">
@@ -93,21 +94,28 @@
                 const token = params.get('token');
 
                 if (token) {
-                    fetch('/get-user-data', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ token })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log('User Data:', data);
-                        unityInstance.SendMessage('GameManager', 'ReceiveUserData', JSON.stringify(data));
-                    })
-                    .catch(error => {
-                        console.error('Failed to fetch user data:', error);
-                    });
+                    const fetchData = () => {
+                        fetch('/get-user-data', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ token })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log('User Data:', data);
+                            unityInstance.SendMessage('GameManager', 'ReceiveUserData', JSON.stringify(data));
+                        })
+                        .catch(error => {
+                            console.error('Failed to fetch user data:', error);
+                        });
+                    };
+
+                    // Fetch data every 2 seconds
+                    setInterval(fetchData, 2000);
+                    // Initial fetch
+                    fetchData();
                 }
             }).catch((message) => {
                 alert(message);
