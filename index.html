@@ -1,127 +1,164 @@
 <!DOCTYPE html>
 <html lang="en-us">
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Unity WebGL Player | CWUnity</title>
-    <link rel="shortcut icon" href="TemplateData/favicon.ico">
-    <link rel="stylesheet" href="TemplateData/style.css">
-    <script src="game.js"></script>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>Unity WebGL Player | CWUnity</title>
+  <link rel="shortcut icon" href="TemplateData/favicon.ico">
+  <link rel="stylesheet" href="TemplateData/style.css">
 </head>
 <body>
-    <div id="unity-container" class="unity-desktop">
-        <canvas id="unity-canvas" width=1920 height=1080></canvas>
-        <div id="unity-loading-bar">
-            <div id="unity-logo"></div>
-            <div id="unity-progress-bar-empty">
-                <div id="unity-progress-bar-full"></div>
-            </div>
-        </div>
-        <div id="unity-warning"> </div>
-        <div id="unity-footer">
-            <div id="unity-webgl-logo"></div>
-            <div id="unity-fullscreen-button"></div>
-            <div id="unity-build-title">CWUnity</div>
-        </div>
+  <div id="unity-container" class="unity-desktop">
+    <canvas id="unity-canvas" width=1920 height=1080></canvas>
+    <div id="unity-loading-bar">
+      <div id="unity-logo"></div>
+      <div id="unity-progress-bar-empty">
+        <div id="unity-progress-bar-full"></div>
+      </div>
     </div>
-    <script>
-        var container = document.querySelector("#unity-container");
-        var canvas = document.querySelector("#unity-canvas");
-        var loadingBar = document.querySelector("#unity-loading-bar");
-        var progressBarFull = document.querySelector("#unity-progress-bar-full");
-        var fullscreenButton = document.querySelector("#unity-fullscreen-button");
-        var warningBanner = document.querySelector("#unity-warning");
+    <div id="unity-warning"> </div>
+    <div id="unity-footer">
+      <div id="unity-webgl-logo"></div>
+      <div id="unity-fullscreen-button"></div>
+      <div id="unity-build-title">CWUnity</div>
+    </div>
+  </div>
+  <script>
+    var container = document.querySelector("#unity-container");
+    var canvas = document.querySelector("#unity-canvas");
+    var loadingBar = document.querySelector("#unity-loading-bar");
+    var progressBarFull = document.querySelector("#unity-progress-bar-full");
+    var fullscreenButton = document.querySelector("#unity-fullscreen-button");
+    var warningBanner = document.querySelector("#unity-warning");
 
-        function unityShowBanner(msg, type) {
-            function updateBannerVisibility() {
-                warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
-            }
-            var div = document.createElement('div');
-            div.innerHTML = msg;
-            warningBanner.appendChild(div);
-            if (type == 'error') div.style = 'background: red; padding: 10px;';
-            else {
-                if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
-                setTimeout(function() {
-                    warningBanner.removeChild(div);
-                    updateBannerVisibility();
-                }, 5000);
-            }
-            updateBannerVisibility();
-        }
+    function unityShowBanner(msg, type) {
+      function updateBannerVisibility() {
+        warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+      }
+      var div = document.createElement('div');
+      div.innerHTML = msg;
+      warningBanner.appendChild(div);
+      if (type == 'error') div.style = 'background: red; padding: 10px;';
+      else {
+        if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+        setTimeout(function () {
+          warningBanner.removeChild(div);
+          updateBannerVisibility();
+        }, 5000);
+      }
+      updateBannerVisibility();
+    }
 
-        var buildUrl = "Build";
-        var loaderUrl = buildUrl + "/Buidl.loader.js";
-        var config = {
-            dataUrl: buildUrl + "/Buidl.data",
-            frameworkUrl: buildUrl + "/Buidl.framework.js",
-            codeUrl: buildUrl + "/Buidl.wasm",
-            streamingAssetsUrl: "StreamingAssets",
-            companyName: "Ludus Mundi",
-            productName: "CWUnity",
-            productVersion: "1.0",
-            showBanner: unityShowBanner,
+    var buildUrl = "Build";
+    var loaderUrl = buildUrl + "/clown-world-build.loader.js";
+    var config = {
+      dataUrl: buildUrl + "/clown-world-build.data",
+      frameworkUrl: buildUrl + "/clown-world-build.framework.js",
+      codeUrl: buildUrl + "/clown-world-build.wasm",
+      streamingAssetsUrl: "StreamingAssets",
+      companyName: "Ludus Mundi",
+      productName: "CWUnity",
+      productVersion: "1.0",
+      showBanner: unityShowBanner,
+    };
+
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      var meta = document.createElement('meta');
+      meta.name = 'viewport';
+      meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+      document.getElementsByTagName('head')[0].appendChild(meta);
+      container.className = "unity-mobile";
+      canvas.className = "unity-mobile";
+      unityShowBanner('WebGL builds are not supported on mobile devices.');
+    } else {
+      canvas.style.width = "1920px";
+      canvas.style.height = "1080px";
+    }
+
+    loadingBar.style.display = "block";
+
+    var script = document.createElement("script");
+    script.src = loaderUrl;
+    script.onload = () => {
+      createUnityInstance(canvas, config, (progress) => {
+        progressBarFull.style.width = 100 * progress + "%";
+      }).then((unityInstance) => {
+        loadingBar.style.display = "none";
+        fullscreenButton.onclick = () => {
+          unityInstance.SetFullscreen(1);
         };
 
-        if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-            var meta = document.createElement('meta');
-            meta.name = 'viewport';
-            meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-            document.getElementsByTagName('head')[0].appendChild(meta);
-            container.className = "unity-mobile";
-            canvas.className = "unity-mobile";
-            unityShowBanner('WebGL builds are not supported on mobile devices.');
-        } else {
-            canvas.style.width = "1920px";
-            canvas.style.height = "1080px";
-        }
+        const params = new URLSearchParams(window.location.search);
+        const state = params.get('state');
+        console.log('Extracted state:', state);
 
-        loadingBar.style.display = "block";
-
-        var script = document.createElement("script");
-        script.src = loaderUrl;
-        script.onload = () => {
-            createUnityInstance(canvas, config, (progress) => {
-                progressBarFull.style.width = 100 * progress + "%";
-            }).then((unityInstance) => {
-                nethereumUnityInstance = unityInstance;
-                loadingBar.style.display = "none";
-                fullscreenButton.onclick = () => {
-                    unityInstance.SetFullscreen(1);
-                };
-
-                const params = new URLSearchParams(window.location.search);
-                const token = params.get('token');
-
-                if (token) {
-                    const fetchData = () => {
-                        fetch('/get-user-data', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({ token })
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            console.log('User Data:', data);
-                            unityInstance.SendMessage('GameManager', 'ReceiveUserData', JSON.stringify(data));
-                        })
-                        .catch(error => {
-                            console.error('Failed to fetch user data:', error);
-                        });
-                    };
-
-                    // Fetch data every 2 seconds
-                    setInterval(fetchData, 2000);
-                    // Initial fetch
-                    fetchData();
+        if (state) {
+          const authenticate = () => {
+            console.log('Attempting authentication...');
+            fetch('http://localhost:3000/auth', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ state }),
+              credentials: 'include' // Ensure credentials are included
+            })
+              .then(response => {
+                if (!response.ok) {
+                  throw new Error('Authentication failed');
                 }
-            }).catch((message) => {
-                alert(message);
+                console.log('Auth response status:', response.status);
+                return response.json();
+              })
+              .then(data => {
+                console.log('Auth response data:', data);
+                if (data.success) {
+                  console.log('Authentication successful, fetching user data...');
+                  // Start fetching user data every 3 seconds
+                  setInterval(() => {
+                    fetchUserData();
+                  }, 3000);
+                }
+              })
+              .catch(error => {
+                console.error('Authentication error:', error);
+              });
+          };
+
+          const fetchUserData = () => {
+            console.log('Cookies before user data request:', document.cookie);
+            fetch('http://localhost:3000/get-user-data', {
+              method: 'POST',
+              credentials: 'include',
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            })
+            .then(response => {
+              console.log('User data response status:', response.status);
+              console.log('User data response headers:', response.headers);
+              return response.json().catch(() => response.text());
+            })
+            .then(data => {
+              console.log('User data response:', data);
+              if (data.error) {
+                throw new Error(data.error);
+              }
+              unityInstance.SendMessage('GameManager', 'ReceiveUserData', JSON.stringify(data));
+            })
+            .catch(error => {
+              console.error('Failed to fetch user data:', error);
             });
-        };
-        document.body.appendChild(script);
-    </script>
+          };
+          
+          // Authenticate and fetch data initially
+          authenticate();
+        }
+      }).catch((message) => {
+        alert(message);
+      });
+    };
+    document.body.appendChild(script);
+  </script>
 </body>
 </html>
